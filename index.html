@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leadership Explorer — Brain in Hand</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family:system-ui,-apple-system,sans-serif; background:#FAF9F5; color:#1B002E; }
+.shell { max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; }
+.hdr { background:#1B002E; padding:1rem 1.25rem .7rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+.logo { color:#FFE95C; font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+.logo span { color:rgba(255,255,255,.35); font-weight:400; text-transform:none; margin-left:4px; }
+.hdr-r { font-size:10px; color:rgba(255,255,255,.35); }
+.prog { height:3px; background:rgba(0,0,0,.1); }
+.prog-fill { height:100%; background:#FFE95C; transition:width .4s; }
+.flash { margin:1.5rem 1.25rem 0; background:#1B002E; border-radius:16px; padding:2rem 1.5rem; min-height:160px; display:flex; flex-direction:column; justify-content:space-between; }
+.flash-tag { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.4); margin-bottom:.75rem; }
+.flash-big { font-size:22px; font-weight:500; color:#fff; line-height:1.3; margin-bottom:.5rem; }
+.flash-sub { font-size:13px; color:#EAC1FF; line-height:1.5; }
+.flash-dots { display:flex; gap:5px; margin-top:1.25rem; }
+.flash-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.2); }
+.flash-dot.on { background:#FFE95C; }
+.flash-hint { font-size:10px; color:rgba(255,255,255,.3); text-align:right; margin-top:.5rem; }
+.note { margin:.75rem 1.25rem 0; border-radius:8px; padding:.65rem .9rem; font-size:11px; line-height:1.55; }
+.note-warm { background:#FFF8EC; border:.5px solid #FFC962; color:#6B4200; }
+.note-quiet { font-size:10px; color:#9B8AAA; padding:.5rem 1.25rem 0; line-height:1.55; }
+.btn-cta { margin:.9rem 1.25rem 0; width:calc(100% - 2.5rem); background:#1B002E; color:#FFE95C; font-size:13px; font-weight:500; border:none; border-radius:10px; padding:14px; cursor:pointer; display:block; }
+.btn-cta:hover { opacity:.9; }
+.btn-ghost { margin:.5rem 1.25rem 0; width:calc(100% - 2.5rem); background:transparent; color:#6B5A7E; font-size:12px; border:.5px solid #EAC1FF; border-radius:10px; padding:10px; cursor:pointer; display:block; }
+.char-strip { margin:1rem 1.25rem 0; background:#fff; border-radius:12px; border:.5px solid #EAC1FF; display:flex; align-items:center; gap:12px; padding:.85rem 1rem; }
+.char-av { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#fff; flex-shrink:0; }
+.char-name { font-size:13px; font-weight:500; }
+.char-desc { font-size:10px; color:#6B5A7E; margin-top:1px; }
+.scene { margin:0 1.25rem; }
+.scene-setup { font-size:13px; line-height:1.65; padding:.9rem 0 .5rem; }
+.scene-speech { background:#F5EAF9; border-radius:0 10px 10px 10px; padding:.75rem .9rem; font-size:13px; font-style:italic; line-height:1.55; border:.5px solid #EAC1FF; margin-bottom:.75rem; }
+.scene-q { font-size:14px; font-weight:600; padding:.25rem 0 .6rem; }
+.choices { display:flex; flex-direction:column; gap:7px; margin:0 1.25rem; }
+.choice { background:#fff; border:1.5px solid #EDE0F5; border-radius:10px; padding:.8rem .95rem; cursor:pointer; font-size:13px; line-height:1.4; text-align:left; width:100%; }
+.choice:hover { border-color:#EAC1FF; background:#F5EAF9; }
+.choice.sel { border-color:#8E3CCE; background:#F5EAF9; }
+.result { margin:0 1.25rem; border-radius:12px; overflow:hidden; border:.5px solid #EAC1FF; }
+.result-band { padding:.55rem 1rem; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.result-band.good { background:#E8F5EE; color:#2E7D52; }
+.result-band.mixed { background:#FFF8E1; color:#7B5800; }
+.result-band.poor { background:#FFF5F5; color:#C0392B; }
+.result-body { background:#fff; padding:.85rem 1rem; font-size:13px; line-height:1.65; }
+.result-body p { margin-bottom:.5rem; }
+.result-body p:last-child { margin-bottom:0; }
+.result-nudge { background:#F5EAF9; padding:.65rem 1rem; font-size:11px; color:#6B5A7E; font-style:italic; line-height:1.55; border-top:.5px solid #EAC1FF; }
+.refl-q { font-size:15px; font-weight:500; padding:.75rem 1.25rem .5rem; line-height:1.4; }
+.refl-hint { font-size:11px; color:#6B5A7E; padding:0 1.25rem .6rem; }
+.refl-opts { display:flex; flex-direction:column; gap:6px; margin:0 1.25rem; }
+.refl-opt { background:#fff; border:1.5px solid #EDE0F5; border-radius:10px; padding:.7rem .95rem; cursor:pointer; font-size:12px; line-height:1.4; text-align:left; width:100%; }
+.refl-opt:hover { border-color:#EAC1FF; }
+.refl-opt.sel { border-color:#8E3CCE; background:#F5EAF9; }
+.refl-insight { margin:.5rem 1.25rem 0; background:#E8F5EE; border:.5px solid #A8D5BC; border-radius:8px; padding:.7rem .9rem; font-size:12px; color:#2E7D52; line-height:1.55; }
+.takeaway { margin:1rem 1.25rem 0; background:#1B002E; border-radius:14px; padding:1.35rem 1.25rem; }
+.takeaway-label { font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#FFE95C; margin-bottom:.6rem; }
+.takeaway-text { font-size:14px; color:#fff; line-height:1.6; }
+.complete-hero { margin:1.5rem 1.25rem 0; background:#1B002E; border-radius:16px; padding:2rem 1.25rem; text-align:center; }
+.complete-tick { font-size:36px; margin-bottom:.75rem; }
+.complete-title { font-size:19px; font-weight:500; color:#FFE95C; margin-bottom:.4rem; }
+.complete-next { font-size:12px; color:#EAC1FF; line-height:1.6; }
+.map-level { padding:.75rem 1.25rem .25rem; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#8E3CCE; }
+.map-items { display:flex; flex-direction:column; gap:6px; padding:0 1.25rem; }
+.map-item { background:#fff; border:.5px solid #EAC1FF; border-radius:10px; padding:.75rem 1rem; display:flex; align-items:center; gap:10px; cursor:pointer; }
+.map-item:hover:not(.map-locked) { border-color:#8E3CCE; background:#F5EAF9; }
+.map-item.map-done { border-color:#2E7D52; }
+.map-item.map-locked { opacity:.4; cursor:default; }
+.map-num { width:28px; height:28px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.map-num-done { background:#E8F5EE; color:#2E7D52; }
+.map-num-active { background:#8E3CCE; color:#fff; }
+.map-num-locked { background:#F5EAF9; color:#6B5A7E; }
+.map-info { flex:1; }
+.map-title { font-size:12px; font-weight:500; }
+.map-sub { font-size:10px; color:#6B5A7E; margin-top:1px; }
+.eyebrow { font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#8E3CCE; padding:1.25rem 1.25rem .25rem; }
+.heading { font-size:21px; font-weight:500; padding:0 1.25rem .25rem; line-height:1.3; }
+.sub { font-size:12px; color:#6B5A7E; padding:0 1.25rem .5rem; line-height:1.6; }
+.nav { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem 1.5rem; margin-top:auto; }
+.btn-back { font-size:12px; color:#6B5A7E; background:none; border:none; padding:0; cursor:pointer; }
+.btn-next { font-size:13px; font-weight:500; color:#fff; background:#8E3CCE; border:none; border-radius:8px; padding:10px 22px; cursor:pointer; }
+.btn-next:disabled { opacity:.3; cursor:not-allowed; }
+.spacer { height:2rem; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="hdr">
+    <div class="logo">Brain in Hand <span>· Leadership Explorer</span></div>
+    <div class="hdr-r" id="hdr-r"></div>
+  </header>
+  <div class="prog"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+  <main id="app"></main>
+</div>
+<script>
+
+var CHARS = {
+  jamie:  {name:'Jamie',  desc:'On your team for 8 months', color:'#4A90D9', i:'J'},
+  priya:  {name:'Priya',  desc:'On your team for 2 years',  color:'#2E7D52', i:'P'},
+  marcus: {name:'Marcus', desc:'On your team for 3 years',  color:'#8E3CCE', i:'M'}
+};
+
+var SESSIONS = [
+{
+  id:'s1', level:1, title:'Ask more. Tell less.', sub:'Session 1 with Jamie',
+  flash:[
+    {big:'Most leaders lead by telling.', sub:'They have the answers. So they give them.'},
+    {big:'There is a better way.', sub:'Ask more. Tell less.'},
+    {big:'Your job is not to have the answer.', sub:'It is to help them find it. Tap to meet Jamie.'}
+  ],
+  char:'jamie',
+  setup:'Jamie has been on your team for eight months. Reliable, gets on with things.\n\nThis morning, Jamie knocks on your door.',
+  speech:'"Have you got five minutes? I am struggling with the Henderson project."',
+  q:'What do you say?',
+  choices:[
+    {id:'a', text:'"What is making it hard right now?"', q:'good'},
+    {id:'b', text:'"I think the issue is the timeline — let me show you."', q:'poor'},
+    {id:'c', text:'"That project has been tricky for everyone."', q:'poor'},
+    {id:'d', text:'"What have you already tried?"', q:'good'}
+  ],
+  cons:{
+    a:{q:'good', label:'You opened the door',
+       text:'Jamie paused. Then — "Honestly, I do not understand what they want. The brief keeps changing and I do not want to ask again."\n\nYou did not know that. You could not have — until you asked.',
+       nudge:'"What is making it hard" is one of the most useful questions a leader can ask.'},
+    b:{q:'poor', label:'You took over',
+       text:'You walked Jamie through your thinking. Jamie nodded and left.\n\nThree days later the same problem was still there.',
+       nudge:'Your answer made sense to you. But Jamie needed to find their own answer.'},
+    c:{q:'poor', label:'You closed it down',
+       text:'Jamie said "yeah, you are right" and left. Nothing changed.',
+       nudge:'Reassurance without curiosity rarely helps. Jamie needed space to think.'},
+    d:{q:'good', label:'A great first question',
+       text:'"I have tried rewriting the brief three times," Jamie said. "But I am not sure what they actually want."\n\nNow you have something real to work with.',
+       nudge:'"What have you already tried" shows you are listening — and stops you suggesting things that have not worked.'}
+  },
+  fu:{
+    setup:'Jamie has opened up. The brief keeps changing and they are not sure what is expected.',
+    q:'What do you say next?',
+    choices:[
+      {id:'a', text:'"What do you think you need to move forward?"', q:'good'},
+      {id:'b', text:'"Right — I will email the client and get clarity."', q:'poor'},
+      {id:'c', text:'"That makes sense. What would help you feel clearer?"', q:'good'},
+      {id:'d', text:'"I will think about whether I can help."', q:'mixed'}
+    ],
+    cons:{
+      a:{q:'good', label:'You stayed curious',
+         text:'"Could we talk through the brief together?" Jamie said. "I just need to check my understanding."\n\nTwenty minutes later Jamie had a plan. You did not write it. Jamie did.',
+         nudge:'When you ask what someone needs, they often already know the answer.'},
+      b:{q:'poor', label:'You took it back again',
+         text:'You sent the email. It helped in the moment. But next time Jamie hits a wall — they will wait for you to fix it.',
+         nudge:'Solving it feels kind. But it takes away the chance to build confidence.'},
+      c:{q:'good', label:'Another good question',
+         text:'"Talking it through with someone," Jamie said. "I have been avoiding it because I did not want to look like I did not know."\n\nThat honesty came from one open question.',
+         nudge:'Asking what would help someone feel clearer gets to the root — not just the practical side.'},
+      d:{q:'mixed', label:'Thoughtful — but a bit vague',
+         text:'Jamie left not quite sure what would happen next. You meant well — but leaving it open without a next step meant the conversation did not quite land.',
+         nudge:'A question keeps momentum going. Saying you will think about it leaves Jamie waiting.'}
+    }
+  },
+  refl:{
+    q:'What was Jamie really telling you?',
+    hint:'Pick everything that feels true.',
+    opts:[
+      'I do not know how to do this',
+      'I am worried about looking incompetent',
+      'I need someone to fix it for me',
+      'I need to know it is okay not to have all the answers'
+    ],
+    insight:'All of these might be true. The point is — you are asking the question rather than assuming you know.'
+  },
+  takeaway:{
+    label:'Try this before your next conversation',
+    text:'Before you offer a solution — ask three questions first.\n\nJust three. See what comes up.'
+  },
+  next:'Next: the ones who seem absolutely fine — and why they are often the ones who need you most.'
+},
+{
+  id:'s2', level:1, title:'The ones who seem fine.', sub:'Session 2 with Priya',
+  flash:[
+    {big:'The best leaders do not just respond to crises.', sub:'They notice things before a crisis happens.'},
+    {big:'Most people do not say when they are struggling.', sub:'They say they are fine. And carry it quietly.'},
+    {big:'Pay attention to what changes.', sub:'Change is information. Tap to meet Priya.'}
+  ],
+  char:'priya',
+  setup:'Priya has been on your team for two years. Always delivers. Never complains.\n\nSix weeks ago, two close colleagues moved to a different team. Since then — something feels slightly different. Priya is quieter. Still delivering. Still saying she is fine.\n\nYou have a one-to-one today.',
+  speech:null,
+  q:'How do you open it?',
+  choices:[
+    {id:'a', text:'"You seem a bit quiet lately — everything okay?"', q:'mixed'},
+    {id:'b', text:'"Let\'s go through your projects. Where are you with Henderson?"', q:'poor'},
+    {id:'c', text:'"How are you finding things since the restructure?"', q:'good'},
+    {id:'d', text:'"I\'ve noticed things seem a bit different. I might be wrong — but I wanted to check in properly."', q:'good'}
+  ],
+  cons:{
+    a:{q:'mixed', label:'You noticed — but made it easy to deflect',
+       text:'Priya smiled. "Just tired." The conversation moved on.\n\nYou noticed something. But "a bit quiet" was easy to brush off.',
+       nudge:'Naming what you have noticed is good. But how you name it matters.'},
+    b:{q:'poor', label:'Straight into tasks',
+       text:'You went through the projects. Priya was prepared, as always.\n\nTwo weeks later she handed in her notice. In her exit interview — she said she felt invisible.',
+       nudge:'You had noticed. You just did not say so.'},
+    c:{q:'good', label:'A specific, real question',
+       text:'"Honestly — it has been strange," Priya said. "I did not realise how much I relied on having Maya and Tom around."\n\nShe had never said anything like this before.',
+       nudge:'Naming the thing that changed gave Priya a way in.'},
+    d:{q:'good', label:'You made it safe to be honest',
+       text:'"Yeah," Priya said. "It has been harder than I expected. The team still feels unsettled for me."\n\nShe had never said anything like this before.',
+       nudge:'"I might be wrong" took the pressure off. Priya just had to respond to your care.'}
+  },
+  fu:{
+    setup:'Priya has opened up. The restructure has been harder than she expected.',
+    q:'What do you say?',
+    choices:[
+      {id:'a', text:'"I am glad you told me. What do you think would help?"', q:'good'},
+      {id:'b', text:'"I will arrange more time with the new team members for you."', q:'mixed'},
+      {id:'c', text:'"I am sorry — I should have checked in sooner."', q:'mixed'},
+      {id:'d', text:'"That makes sense. What would make the biggest difference right now?"', q:'good'}
+    ],
+    cons:{
+      a:{q:'good', label:'You stayed curious',
+         text:'"Honestly — just knowing you had noticed," Priya said. "That helps more than anything."\n\nSometimes people do not need a solution. They need to know they are seen.',
+         nudge:'Asking what would help gave Priya agency. And the answer surprised you.'},
+      b:{q:'mixed', label:'You moved to action a bit fast',
+         text:'It helped a little. But Priya had wanted to feel heard first.',
+         nudge:'The action was good. A little more listening first would have let it land more fully.'},
+      c:{q:'mixed', label:'Careful with self-focus',
+         text:'Priya reassured you it was fine. Subtly — she was now looking after you.',
+         nudge:'A brief acknowledgement is fine. But return quickly to Priya\'s experience.'},
+      d:{q:'good', label:'A great coaching question',
+         text:'"Having someone to talk to when things feel unsettled," Priya said. "Just knowing the door is open."\n\nYou could not have known that was what she needed. Now you do.',
+         nudge:'Asking about the biggest difference gets to the heart of things faster.'}
+    }
+  },
+  refl:{
+    q:'Priya said she did not realise how much she relied on having Maya and Tom around. What does that tell you?',
+    hint:'Pick everything that feels true.',
+    opts:[
+      'She needs familiar people around her to feel settled',
+      'She finds change harder than she lets on',
+      'She has been masking how she really feels',
+      'She needs more connection than her role currently gives her'
+    ],
+    insight:'All of these might be true. You know something now that you did not before — because you asked.'
+  },
+  takeaway:{
+    label:'The framework',
+    text:'Notice. Name it gently. Ask.\n\n"I have noticed things seem a bit different. I might be wrong — but I wanted to check in."\n\nYou do not need to know what is wrong. Just open the door.'
+  },
+  next:'Next: the most frustrating person on your team — and why their behaviour might mean something completely different.'
+},
+{
+  id:'s3', level:1, title:'What behaviour is really telling you.', sub:'Session 3 with Marcus',
+  flash:[
+    {big:'Behaviour is communication.', sub:'When people cannot say it — it comes out as something else.'},
+    {big:'Lateness. Silence. Resistance.', sub:'These are signals. Not character flaws.'},
+    {big:'Do not ask why they are behaving like this.', sub:'Ask what they are trying to tell you. Tap to meet Marcus.'}
+  ],
+  char:'marcus',
+  setup:'Marcus is technically brilliant. His work — when he delivers it — is some of the best on the team.\n\nBut lately: late to meetings, barely speaks in groups, missed a deadline, pushed back on a decision in front of everyone.\n\nYou are frustrated. You call Marcus in.',
+  speech:null,
+  q:'How do you open it?',
+  choices:[
+    {id:'a', text:'"Marcus, your behaviour lately is not acceptable."', q:'poor'},
+    {id:'b', text:'"I have noticed a few things — and I wanted to understand what is going on for you."', q:'good'},
+    {id:'c', text:'"The team has noticed you have been difficult. It is affecting the dynamic."', q:'poor'},
+    {id:'d', text:'"You are one of the best on the team. I want to make sure we are setting you up properly."', q:'good'}
+  ],
+  cons:{
+    a:{q:'poor', label:'You addressed the behaviour',
+       text:'Marcus went quiet. Said it will not happen again.\n\nHe became more withdrawn. Three months later — he handed in his notice.',
+       nudge:'The behaviour stopped. But the person left.'},
+    b:{q:'good', label:'You led with curiosity',
+       text:'Marcus\'s shoulders dropped. "Group meetings are really hard for me. There is a lot going on and by the time I have processed it, the moment is gone."\n\nYou did not know that.',
+       nudge:'One curious question changed everything you thought you knew about Marcus.'},
+    c:{q:'poor', label:'You brought others into it',
+       text:'Marcus shut down. "I did not realise I was being discussed."\n\nThe conversation became defensive.',
+       nudge:'Bringing in what others have noticed makes people feel observed, not understood.'},
+    d:{q:'good', label:'You led with strength',
+       text:'"I am glad you see it that way," Marcus said. "Because I have been struggling to show it lately."\n\nThat opening created enough safety for honesty.',
+       nudge:'Acknowledging strength before difficulty changes the entire tone of what follows.'}
+  },
+  fu:{
+    setup:'Marcus has told you that group settings are hard. By the time he has processed what is said, the moment is gone.\n\nThe missed deadline and the pushback still need addressing.',
+    q:'What do you do with this?',
+    choices:[
+      {id:'a', text:'"That is really useful. What would make meetings work better for you?"', q:'good'},
+      {id:'b', text:'"Okay — but the missed deadline and the pushback still need addressing."', q:'mixed'},
+      {id:'c', text:'"Let\'s think together about what might work — for you and for the team."', q:'good'},
+      {id:'d', text:'"I will think about whether we can change the format."', q:'mixed'}
+    ],
+    cons:{
+      a:{q:'good', label:'You stayed curious',
+         text:'Marcus suggested getting the agenda in advance. You suggested written input before meetings.\n\nMarcus left feeling like he could be himself.',
+         nudge:'Asking what would work for Marcus gave him agency — and that is why he will act on it.'},
+      b:{q:'mixed', label:'Fair — but the timing matters',
+         text:'Marcus nodded. "I know. I am sorry."\n\nThe issues got acknowledged. But the understanding you had just built lost a little ground.',
+         nudge:'Those things do need addressing — but they land better after understanding has been built.'},
+      c:{q:'good', label:'A collaborative response',
+         text:'"Actually — the agenda a day before would fix most of it," Marcus said. "I just need to go in prepared."\n\nYou would never have known that.',
+         nudge:'"For you and for the team" signals this is shared — not just Marcus\'s problem to fix.'},
+      d:{q:'mixed', label:'Thoughtful — but passive',
+         text:'Marcus left slightly unsure whether anything would change.',
+         nudge:'A question keeps Marcus part of the solution rather than waiting for one.'}
+    }
+  },
+  refl:{
+    q:'Marcus said group settings are hard — by the time he has processed it, the moment is gone. What does that tell you?',
+    hint:'Pick everything that feels true.',
+    opts:[
+      'Marcus struggles to keep up',
+      'Marcus processes at a different pace and needs more time',
+      'Marcus is not suited to collaborative work',
+      'Marcus has been masking a genuine difficulty for a long time'
+    ],
+    insight:'Option 2 and 4 are most likely. His work quality tells you he is more than capable — he just needs different conditions.'
+  },
+  takeaway:{
+    label:'Before you address a behaviour — ask yourself',
+    text:'What changed? When did it start? What might have triggered it?\n\nBehaviour rarely appears from nowhere.'
+  },
+  next:'Level 1 complete. Level 2 goes deeper — the same people, more complex situations.'
+}
+];
+
+var PRACTICE = [
+{
+  id:'p1', after:'s1', title:'Rewrite it.', sub:'Practice Round 1',
+  intro:{big:'Quick practice.', sub:'A directive statement. Your job — turn it into a question.'},
+  rounds:[
+    {
+      stmt:'"You need to get better at managing your time."',
+      q:'Turn this into a question a curious leader might ask.',
+      opts:[
+        "What is getting in the way of hitting deadlines?",
+        "Have you thought about how you are prioritising?",
+        "What does your week look like at the moment?",
+        "What would help you feel more on top of things?"
+      ],
+      reveal:'All four are better than the statement — but not equal. The most curious questions do not assume. They wait. "What is getting in the way" and "What would help" both assume there is something you do not know yet.'
+    },
+    {
+      stmt:'"I need you to contribute more in meetings."',
+      q:'Four options — but two are traps. Which one are you most drawn to?',
+      opts:[
+        "What would make meetings more useful for you?",
+        "Have you considered preparing some points beforehand?",
+        "I have noticed you have been quieter — what is going on for you?",
+        "What stops you from speaking up?"
+      ],
+      reveal:'"What stops you from speaking up?" assumes they could speak up and are choosing not to. That assumption might be wrong. The other two open options ask different things — one about the meeting, one about the person. A good question starts with knowing what you are actually curious about.'
+    },
+    {
+      stmt:'"This decision has been made. I need you to get on board."',
+      q:'The decision really has been made. How do you stay curious without implying you will change your mind?',
+      opts:[
+        "I hear you have concerns — what specifically is worrying you?",
+        "What would make this feel more workable for you?",
+        "Help me understand what is making this difficult.",
+        "What do you need from me to move forward with this?"
+      ],
+      reveal:'The most curious question is not always the most open one. Sometimes it is the most honest one. "What do you need from me to move forward" treats the person as someone who gets to say what they need — without pretending the decision is open.'
+    }
+  ],
+  close:{big:'The pattern is not a formula.', sub:'Curious questions come from genuinely wanting to know. Before your next difficult conversation — what are you actually curious about?'}
+},
+{
+  id:'p2', after:'s2', title:'Spot the difference.', sub:'Practice Round 2',
+  intro:{big:'Two conversations. Same situation.', sub:'Read both. Just notice. What do you pick up?'},
+  rounds:[
+    {
+      convA:'Monday morning. You pass Priya in the corridor.\n\n"Morning — you okay?" "Yeah, fine thanks." "Great. Busy week ahead!"',
+      convB:'Monday morning. You pass Priya in the corridor.\n\n"Morning. How was your weekend?" "Oh — quiet. Fine, yeah." "You seem a bit tired. Everything alright?" "Yeah... just a bit up and down lately." "I am glad you said that. Let us find five minutes this week — no agenda."',
+      q:'What did you notice? Not what was better — what was different.',
+      opts:[
+        'Leader B noticed something specific and named it without pressure',
+        'Leader B did not try to fix it or make it bigger than it needed to be',
+        'Leader B left a door open without forcing Priya through it',
+        'Leader B slowed down — and that changed what was possible'
+      ],
+      reveal:'Leader A was friendly. Leader B was present. What Leader B did not do is as important as what they did. No reassurance. No problem-solving. They just noticed. And said so.'
+    },
+    {
+      convA:'One-to-one with Marcus.\n\nOpening A: "Right — let us go through your projects. Where are you with Henderson?"',
+      convB:'One-to-one with Marcus.\n\nOpening B: "Before we get into it — how are you finding things at the moment?"',
+      q:'Seven words of difference. What do those seven words change — for Marcus, not just for you?',
+      opts:[
+        'Opening A signals: the work is what matters here',
+        'Opening B signals: you are what matters here — the work comes second',
+        'Opening B makes more possible in the next twenty minutes',
+        'Opening A is not wrong — it is just more limited'
+      ],
+      reveal:'For someone who has been carrying something quietly — that signal changes what they are willing to say. Opening A is not wrong. Opening B makes more possible. The uncomfortable question: how many of your one-to-ones start with A?'
+    }
+  ],
+  close:{big:'Noticing is a practice.', sub:'This week — notice one thing that has changed about someone on your team. You do not have to say anything. Just notice.'}
+},
+{
+  id:'p3', after:'s3', title:'Rate the question.', sub:'Practice Round 3',
+  intro:{big:'Not all open questions are equal.', sub:'Some give room. Some take it away — even when they sound open.'},
+  questions:[
+    {q:'"Is everything okay?"', opts:['Closed','Somewhere in the middle','Very open'], answer:0, reveal:'Closed — despite sounding open. Most people say fine even when it is not true. Try instead: "How are things really going?" — same intent, much more room.'},
+    {q:'"What support do you have around you?"', opts:['Closed','Somewhere in the middle','Very open'], answer:2, reveal:'Very open. It does not assume what kind of support they need or where it should come from. Open questions do not point. They wait.'},
+    {q:'"What would help?"', opts:['Closed','Somewhere in the middle','Very open'], answer:2, reveal:'Open — but it depends on the moment. When someone is in the middle of something hard, they often do not know what would help. Try: "What would help — even something small?" Same question. Easier to answer.'},
+    {q:'"Have you thought about talking to HR?"', opts:['Closed','Somewhere in the middle','Very open'], answer:0, reveal:'Closed — and possibly unhelpful. It leads to one answer and can feel condescending even when kindly meant. Compare: "What kind of support feels right for where you are?"'},
+    {q:'"What is really going on?"', opts:['Closed','Somewhere in the middle','Very open'], answer:1, reveal:'It depends entirely on the relationship. With the right person at the right moment — one of the most powerful questions a leader can ask. In the wrong context it can feel intrusive. This is why there is no formula.'}
+  ],
+  close:{big:'The Question Bank is now unlocked.', sub:'Questions worth keeping — organised by moment. Use them as a starting point. Adapt them. Make them yours.'}
+}
+];
+
+// State
+var screen = 'home';
+var sid = 's1';
+var stage = 'flash';
+var fi = 0;
+var c1 = null, c2 = null, rChoice = null;
+var done = {};
+var pid = 'p1';
+var pstage = 'intro';
+var pround = 0;
+var pc = null;
+
+function S() { for(var i=0;i<SESSIONS.length;i++) if(SESSIONS[i].id===sid) return SESSIONS[i]; }
+function P() { for(var i=0;i<PRACTICE.length;i++) if(PRACTICE[i].id===pid) return PRACTICE[i]; }
+function Ch(k) { return CHARS[k]; }
+
+function doneCount() { var n=0; for(var k in done) if(done[k]) n++; return n; }
+
+function updateHeader() {
+  document.getElementById('hdr-r').textContent = screen==='home' ? doneCount()+'/'+SESSIONS.length+' done' : screen==='practice' ? P().sub : 'Session '+(SESSIONS.indexOf(S())+1)+' of '+SESSIONS.length;
+  var pct = screen==='home' ? 0 : screen==='practice' ? 50 : ((['flash','scene','result','followup','fu-result','reflect','takeaway','complete'].indexOf(stage))/ 7)*100;
+  document.getElementById('prog').style.width = pct+'%';
+}
+
+function startSession(id) {
+  sid=id; screen='session'; stage='flash'; fi=0; c1=null; c2=null; rChoice=null;
+  render();
+}
+function startPractice(id) {
+  pid=id; screen='practice'; pstage='intro'; pround=0; pc=null;
+  render();
+}
+function goHome() { screen='home'; render(); }
+
+function render() {
+  updateHeader();
+  window.scrollTo(0,0);
+  var app = document.getElementById('app');
+  if(screen==='home') renderHome(app);
+  else if(screen==='practice') renderPractice(app);
+  else renderSession(app);
+}
+
+function renderHome(app) {
+  var h = '';
+  if(doneCount()===0) {
+    h += '<div class="flash" style="margin-top:1.5rem"><div>';
+    h += '<div class="flash-tag">Leadership Explorer</div>';
+    h += '<div class="flash-big">Being a great leader is a skill.</div>';
+    h += '<div class="flash-sub">And like any skill — it can be learned.</div>';
+    h += '</div></div>';
+    h += '<div class="note note-warm" style="margin-top:.75rem">Each session takes about five minutes. No scores. No homework. Just better questions.</div>';
+    h += '<p class="note-quiet">This tool gives you ideas and approaches — not scripts. For anything serious, involve your HR team or occupational health.</p>';
+  } else {
+    h += '<div class="eyebrow" style="padding-top:1.25rem">Your progress</div>';
+    h += '<div class="heading">Keep going.</div>';
+    h += '<div class="sub">Pick up where you left off.</div>';
+    for(var lv=1;lv<=3;lv++) {
+      var ls = SESSIONS.filter(function(s){return s.level===lv;});
+      var prevDone = lv===1 || ls.every(function(s){return done[s.id];});
+      h += '<div class="map-level">Level '+lv+'</div><div class="map-items">';
+      for(var i=0;i<ls.length;i++) {
+        var s=ls[i], isDone=done[s.id];
+        var prev = i===0 ? (lv===1 || SESSIONS.filter(function(x){return x.level===lv-1;}).every(function(x){return done[x.id];})) : done[ls[i-1].id];
+        var unlocked = isDone||prev;
+        var ch=Ch(s.char);
+        h += '<div class="map-item '+(isDone?'map-done':!unlocked?'map-locked':'')+'" onclick="'+(unlocked?'startSession(\''+s.id+'\')':'')+'">';
+        h += '<div class="map-num '+(isDone?'map-num-done':unlocked?'map-num-active':'map-num-locked')+'">'+(isDone?'&#10003;':(i+1))+'</div>';
+        h += '<div class="map-info"><div class="map-title">'+s.title+'</div><div class="map-sub">'+s.sub+'</div></div>';
+        h += '<div>'+(isDone?'&#10003;':unlocked?'&rarr;':'&#128274;')+'</div>';
+        h += '</div>';
+      }
+      h += '</div>';
+    }
+    h += '<div class="spacer"></div>';
+  }
+  app.innerHTML = h;
+  if(doneCount()===0) {
+    var btn = document.createElement('button');
+    btn.className = 'btn-cta';
+    btn.textContent = 'Start your first session \u2192';
+    btn.onclick = function(){ startSession('s1'); };
+    app.appendChild(btn);
+    var sp = document.createElement('div');
+    sp.className = 'spacer';
+    app.appendChild(sp);
+  }
+}
+
+function renderSession(app) {
+  var s=S(), ch=Ch(s.char), h='';
+
+  if(stage==='flash') {
+    var f=s.flash[fi], isLast=fi===s.flash.length-1;
+    h += '<div class="flash" id="flash-card" style="margin-top:1.5rem;cursor:pointer">';
+    h += '<div><div class="flash-tag">'+s.sub+'</div>';
+    h += '<div class="flash-big">'+f.big+'</div>';
+    h += '<div class="flash-sub">'+f.sub+'</div></div>';
+    h += '<div><div class="flash-dots">';
+    for(var i=0;i<s.flash.length;i++) h+='<div class="flash-dot'+(i===fi?' on':'')+'"></div>';
+    h += '</div><div class="flash-hint">'+(isLast?'Tap to continue':'Tap to continue &rarr;')+'</div></div></div>';
+    h += '<div class="spacer"></div>';
+    app.innerHTML = h;
+    document.getElementById('flash-card').onclick = function(){ nextFlash(); };
+    return;
+  }
+
+  if(stage==='scene') {
+    h += '<div class="char-strip"><div class="char-av" style="background:'+ch.color+'">'+ch.i+'</div><div><div class="char-name">'+ch.name+'</div><div class="char-desc">'+ch.desc+'</div></div></div>';
+    h += '<div class="scene"><div class="scene-setup">'+s.setup.replace(/\n/g,'<br>')+'</div>';
+    if(s.speech) h += '<div class="scene-speech">'+s.speech+'</div>';
+    h += '<div class="scene-q">'+s.q+'</div></div>';
+    h += '<div class="choices" id="choices-wrap"></div>';
+    h += '<div class="nav"><button class="btn-back" onclick="sBack()">&#8592; Back</button><button class="btn-next" id="btn-next" onclick="sNext()" disabled>See what happens &rarr;</button></div>';
+    h += '<div class="spacer"></div>';
+    app.innerHTML = h;
+    var cw = document.getElementById('choices-wrap');
+    s.choices.forEach(function(c) {
+      var btn = document.createElement('button');
+      btn.className = 'choice'+(c1===c.id?' sel':'');
+      btn.textContent = c.text;
+      btn.onclick = (function(cid){ return function(){ pick1(cid); }; })(c.id);
+      cw.appendChild(btn);
+    });
+    return;
+  }
+
+  if(stage==='result') {
+    var con=s.cons[c1], chosen=s.choices.filter(function(c){return c.id===c1;})[0];
+    h += '<div class="eyebrow">What happened</div><div class="heading">You said:</div>';
+    h += '<div class="note" style="background:#F5EAF9;border:.5px solid #EAC1FF;color:#1B002E;font-style:italic;margin-top:0">'+chosen.text+'</div>';
+    h += '<div class="result" style="margin-top:.75rem"><div class="result-band '+con.q+'">'+con.label+'</div>';
+    h += '<div class="result-body">'+con.text.split('\n\n').map(function(p){return '<p>'+p+'</p>';}).join('')+'</div>';
+    h += '<div class="result-nudge">'+con.nudge+'</div></div>';
+    h += '<div class="nav"><button class="btn-back" onclick="sBack()">&#8592; Try again</button><button class="btn-next" onclick="sNext()">Continue &rarr;</button></div>';
+    h += '<div class="spacer"></div>';
+    app.innerHTML = h;
+    return;
+  }
+
+  if(stage==='followup') {
+    var fu=s.fu;
+    h += '<div class="char-strip"><div class="char-av" style="background:'+ch.color+'">'+ch.i+'</div><div><div class="char-name">'+ch.name+'</div><div class="char-desc">'+ch.desc+'</div></div></div>';
+    h += '<div class="scene"><div class="scene-setup">'+fu.setup.replace(/\n/g,'<br>')+'</div><div class="scene-q">'+fu.q+'</div></div>';
+    h += '<div class="choices" id="fu-choices-wrap"></div>';
+    h += '<div class="nav"><button class="btn-back" onclick="sBack()">&#8592; Back</button><button class="btn-next" id="btn-next" onclick="sNext()" disabled>See what happens &rarr;</button></div>';
+    h += '<div class="spacer"></div>';
+    app.innerHTML = h;
+    var fw = document.getElementById('fu-choices-wrap');
+    fu.choices.forEach(function(c) {
+      var btn = document.createElement('button');
+      btn.className = 'choice'+(c2===c.id?' sel':'');
+      btn.textContent = c.text;
+      btn.onclick = (function(cid){ return function(){ pick2(cid); }; })(c.id);
+      fw.appendChild(btn);
+    });
+    return;
+  }
+
+  if(stage==='fu-result') {
+    var fcon=s.fu.cons[c2], fchosen=s.fu.choices.filter(function(c){return c.id===c2;})[0];
+    h += '<div class="eyebrow">What happened</div><div class="heading">You said:</div>';
+    h += '<div class="note" style="background:#F5EAF9;border:.5px solid #EAC1FF;color:#1B002E;font-style:italic;margin-top:0">'+fchosen.text+'</div>';
+    h += '<div class="result" style="margin-top:.75rem"><div class="result-band '+fcon.q+'">'+fcon.label+'</div>';
+    h += '<div class="result-body">'+fcon.text.split('\n\n').map(function(p){return '<p>'+p+'</p>';}).join('')+'</div>';
+    h += '<div class="result-nudge">'+fcon.nudge+'</div></div>';
+    h += '<div class="nav"><button class="btn-back" onclick="sBack()">&#8592; Try again</button><button class="btn-next" onclick="sNext()">Reflect &rarr;</button></div>';
+    h += '<div class="spacer"></div>';
+    app.innerHTML = h;
+    return;
+  }
+
+  if(stage==='reflect') {
+    var r=s.refl;
+    h += '<div class="eyebrow">What did you hear?</div>';
+    h += '<div class="refl-q">'+r.q+'</div>';
+    h += '<div class="refl-hint">'+r.hint+'</div>';
+    h += '<div class="refl-opts" id="refl-wrap"></div>';
+    if(rChoice!==null) h += '<div class="refl-insight">'+r.insight+'</div>';
+    h += '<div class="nav"><button class="btn-back" onclick="sBack()">&#8592; Back</button><button class="btn-next" id="btn-next" onclick="sNext()" '+(rChoice!==null?'':'disabled')+'>Almost done &rarr;</button></div>';
+    h += '<div class="spacer"></div>';
+    app.innerHTML = h;
+    var rw = document.getElementById('refl-wrap');
+    r.opts.forEach(function(o,i) {
+      var btn = document.createElement('button');
+      btn.className = 'refl-opt'+(rChoice===i?' sel':'');
+      btn.textContent = o;
+      btn.onclick = (function(idx){ return function(){ pickR(idx); }; })(i);
+      rw.appendChild(btn);
+    });
+    return;
+  }
+
+  if(stage==='takeaway') {
+    var t=s.takeaway;
+    h += '<div class="eyebrow">Before you go</div>';
+    h += '<div class="takeaway"><div class="takeaway-label">'+t.label+'</div>';
+    h += '<div class="takeaway-text">'+t.text.replace(/\n/g,'<br>')+'</div></div>';
+    h += '<div class="note note-warm" style="margin-top:.75rem">Not homework — just something to try when it feels right.</div>';
+    h += '<div class="nav"><button class="btn-back" onclick="sBack()">&#8592; Back</button><button class="btn-next" onclick="sNext()">Finish &rarr;</button></div>';
+    h += '<div class="spacer"></div>';
+    app.innerHTML = h;
+    return;
+  }
+
+  if(stage==='complete') {
+    var pr=null; for(var i=0;i<PRACTICE.length;i++) if(PRACTICE[i].after===s.id){pr=PRACTICE[i];break;}
+    var nextS=SESSIONS[SESSIONS.indexOf(s)+1]||null;
+    h += '<div class="complete-hero"><div class="complete-tick">&#10003;</div>';
+    h += '<div class="complete-title">'+s.title+'</div>';
+    h += '<div class="complete-next">'+s.next+'</div></div>';
+    app.innerHTML = h;
+    if(pr) {
+      var b1=document.createElement('button'); b1.className='btn-cta'; b1.style.marginTop='1rem';
+      b1.textContent='Practice round \u2192';
+      b1.onclick=function(){startPractice(pr.id);};
+      app.appendChild(b1);
+    } else if(nextS) {
+      var b2=document.createElement('button'); b2.className='btn-cta'; b2.style.marginTop='1rem';
+      b2.textContent='Next session \u2192';
+      b2.onclick=function(){startSession(nextS.id);};
+      app.appendChild(b2);
+    }
+    var bg=document.createElement('button'); bg.className='btn-ghost';
+    bg.textContent='All sessions';
+    bg.onclick=function(){goHome();};
+    app.appendChild(bg);
+    var sp=document.createElement('div'); sp.className='spacer';
+    app.appendChild(sp);
+    return;
+  }
+}
+
+function renderPractice(app) {
+  var p=P(), h='';
+
+  if(pstage==='intro') {
+    h += '<div class="flash" style="margin-top:1.5rem"><div>';
+    h += '<div class="flash-tag">'+p.sub+'</div>';
+    h += '<div class="flash-big">'+p.intro.big+'</div>';
+    h += '<div class="flash-sub">'+p.intro.sub+'</div>';
+    h += '</div></div>';
+    app.innerHTML = h;
+    var btn=document.createElement('button'); btn.className='btn-cta'; btn.style.marginTop='1rem';
+    btn.textContent='Start \u2192';
+    btn.onclick=function(){pstage='round';pround=0;pc=null;render();};
+    app.appendChild(btn);
+    var sp=document.createElement('div'); sp.className='spacer'; app.appendChild(sp);
+    return;
+  }
+
+  if(pstage==='round') {
+    if(p.id==='p1') {
+      var r=p.rounds[pround];
+      h += '<div class="eyebrow">'+p.sub+' &middot; '+(pround+1)+' of '+p.rounds.length+'</div>';
+      h += '<div class="heading" style="font-size:17px">Turn this into a question.</div>';
+      h += '<div class="note" style="background:#FFF5F5;border:.5px solid #FFCDD2;color:#C0392B;font-style:italic;margin:.5rem 1.25rem 0">'+r.stmt+'</div>';
+      h += '<div class="sub" style="padding-top:.5rem">'+r.q+'</div>';
+      h += '<div class="choices" id="pr-choices"></div>';
+      h += '<div class="nav"><button class="btn-back" onclick="pBack()">&#8592; Back</button><button class="btn-next" id="btn-next" onclick="pNext()" '+(pc!==null?'':'disabled')+'>See the reveal &rarr;</button></div>';
+      h += '<div class="spacer"></div>';
+      app.innerHTML = h;
+      var cw=document.getElementById('pr-choices');
+      r.opts.forEach(function(o,i){
+        var btn=document.createElement('button'); btn.className='choice'+(pc===i?' sel':'');
+        btn.textContent=o;
+        btn.onclick=(function(idx){return function(){pickP(idx);};})(i);
+        cw.appendChild(btn);
+      });
+    } else if(p.id==='p2') {
+      var r=p.rounds[pround];
+      h += '<div class="eyebrow">'+p.sub+' &middot; '+(pround+1)+' of '+p.rounds.length+'</div>';
+      h += '<div class="heading" style="font-size:17px">Read both. What do you notice?</div>';
+      h += '<div style="margin:.5rem 1.25rem 0;display:flex;flex-direction:column;gap:8px">';
+      h += '<div style="background:#fff;border:.5px solid #EAC1FF;border-radius:10px;padding:.85rem 1rem">';
+      h += '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6B5A7E;margin-bottom:.5rem">Version A</div>';
+      h += '<div style="font-size:12px;line-height:1.65;white-space:pre-line">'+r.convA+'</div></div>';
+      h += '<div style="background:#F5EAF9;border:.5px solid #EAC1FF;border-radius:10px;padding:.85rem 1rem">';
+      h += '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8E3CCE;margin-bottom:.5rem">Version B</div>';
+      h += '<div style="font-size:12px;line-height:1.65;white-space:pre-line">'+r.convB+'</div></div></div>';
+      h += '<div class="sub" style="padding-top:.5rem">'+r.q+'</div>';
+      h += '<div class="choices" id="pr-choices"></div>';
+      h += '<div class="nav"><button class="btn-back" onclick="pBack()">&#8592; Back</button><button class="btn-next" id="btn-next" onclick="pNext()" '+(pc!==null?'':'disabled')+'>See the reveal &rarr;</button></div>';
+      h += '<div class="spacer"></div>';
+      app.innerHTML = h;
+      var cw=document.getElementById('pr-choices');
+      r.opts.forEach(function(o,i){
+        var btn=document.createElement('button'); btn.className='choice'+(pc===i?' sel':'');
+        btn.textContent=o;
+        btn.onclick=(function(idx){return function(){pickP(idx);};})(i);
+        cw.appendChild(btn);
+      });
+    } else if(p.id==='p3') {
+      var q=p.questions[pround];
+      h += '<div class="eyebrow">'+p.sub+' &middot; '+(pround+1)+' of '+p.questions.length+'</div>';
+      h += '<div class="heading" style="font-size:17px">How open is this question?</div>';
+      h += '<div class="note" style="background:#F5EAF9;border:.5px solid #EAC1FF;color:#1B002E;font-style:italic;font-size:15px;font-weight:500;margin:.5rem 1.25rem 0">'+q.q+'</div>';
+      h += '<div class="choices" id="pr-choices" style="margin-top:.75rem"></div>';
+      h += '<div class="nav"><button class="btn-back" onclick="pBack()">&#8592; Back</button><button class="btn-next" id="btn-next" onclick="pNext()" '+(pc!==null?'':'disabled')+'>See the reveal &rarr;</button></div>';
+      h += '<div class="spacer"></div>';
+      app.innerHTML = h;
+      var cw=document.getElementById('pr-choices');
+      q.opts.forEach(function(o,i){
+        var btn=document.createElement('button'); btn.className='choice'+(pc===i?' sel':'');
+        btn.textContent=o;
+        btn.onclick=(function(idx){return function(){pickP(idx);};})(i);
+        cw.appendChild(btn);
+      });
+    }
+    return;
+  }
+
+  if(pstage==='reveal') {
+    var revText='', chosen='';
+    if(p.id==='p1'){var r=p.rounds[pround];revText=r.reveal;chosen=r.opts[pc];}
+    else if(p.id==='p2'){var r=p.rounds[pround];revText=r.reveal;chosen=r.opts[pc];}
+    else if(p.id==='p3'){var q=p.questions[pround];revText=q.reveal;chosen=q.opts[pc];var correct=pc===q.answer;}
+    var isLast=(p.id==='p3')?(pround>=p.questions.length-1):(pround>=p.rounds.length-1);
+    h += '<div class="eyebrow">The reveal</div><div class="heading">You chose:</div>';
+    h += '<div class="note" style="background:#F5EAF9;border:.5px solid #EAC1FF;color:#1B002E;font-style:italic;margin:.25rem 1.25rem 0">'+chosen+'</div>';
+    if(p.id==='p3') {
+      h += '<div class="result" style="margin-top:.5rem"><div class="result-band '+(correct?'good':'mixed')+'">'+(correct?'That is where it lands':'Not quite — here is why')+'</div>';
+    } else {
+      h += '<div class="result" style="margin-top:.5rem"><div class="result-band mixed">Here is the thinking</div>';
+    }
+    h += '<div class="result-body"><p>'+revText+'</p></div></div>';
+    h += '<div class="nav"><button class="btn-back" onclick="pBack()">&#8592; Back</button><button class="btn-next" onclick="pNext()">'+(isLast?'Almost done &rarr;':'Next &rarr;')+'</button></div>';
+    h += '<div class="spacer"></div>';
+    app.innerHTML = h;
+    return;
+  }
+
+  if(pstage==='close') {
+    var nextS=null; for(var i=0;i<SESSIONS.length;i++){if(SESSIONS[i].id===p.after){nextS=SESSIONS[i+1]||null;break;}}
+    h += '<div class="flash" style="margin-top:1.5rem"><div>';
+    h += '<div class="flash-tag">'+p.sub+' complete</div>';
+    h += '<div class="flash-big">'+p.close.big+'</div>';
+    h += '<div class="flash-sub">'+p.close.sub+'</div></div></div>';
+    app.innerHTML = h;
+    if(nextS){
+      var b=document.createElement('button'); b.className='btn-cta'; b.style.marginTop='1rem';
+      b.textContent='Next session: '+nextS.title+' \u2192';
+      b.onclick=function(){startSession(nextS.id);};
+      app.appendChild(b);
+    }
+    var bg=document.createElement('button'); bg.className='btn-ghost';
+    bg.textContent='All sessions';
+    bg.onclick=function(){goHome();};
+    app.appendChild(bg);
+    var sp=document.createElement('div'); sp.className='spacer'; app.appendChild(sp);
+    return;
+  }
+}
+
+function nextFlash() {
+  var s=S();
+  if(fi<s.flash.length-1){fi++;render();}
+  else{stage='scene';render();}
+}
+
+function pick1(id) {
+  c1=id;
+  document.querySelectorAll('#choices-wrap .choice').forEach(function(b){
+    b.classList.remove('sel');
+  });
+  event.target.classList.add('sel');
+  var nb=document.getElementById('btn-next');
+  if(nb)nb.disabled=false;
+}
+
+function pick2(id) {
+  c2=id;
+  document.querySelectorAll('#fu-choices-wrap .choice').forEach(function(b){
+    b.classList.remove('sel');
+  });
+  event.target.classList.add('sel');
+  var nb=document.getElementById('btn-next');
+  if(nb)nb.disabled=false;
+}
+
+function pickR(i) {
+  rChoice=i;
+  render();
+}
+
+function pickP(i) {
+  pc=i;
+  document.querySelectorAll('#pr-choices .choice').forEach(function(b){
+    b.classList.remove('sel');
+  });
+  var btns=document.querySelectorAll('#pr-choices .choice');
+  if(btns[i])btns[i].classList.add('sel');
+  var nb=document.getElementById('btn-next');
+  if(nb)nb.disabled=false;
+}
+
+function sNext() {
+  var flow=['flash','scene','result','followup','fu-result','reflect','takeaway','complete'];
+  var i=flow.indexOf(stage);
+  if(stage==='takeaway'){done[sid]=true;}
+  stage=flow[i+1]||'complete';
+  render();
+}
+
+function sBack() {
+  if(stage==='result'){c1=null;stage='scene';render();return;}
+  if(stage==='fu-result'){c2=null;stage='followup';render();return;}
+  var flow=['flash','scene','result','followup','fu-result','reflect','takeaway','complete'];
+  var i=flow.indexOf(stage);
+  if(i>0){stage=flow[i-1];render();}
+}
+
+function pNext() {
+  var p=P();
+  var isLast=(p.id==='p3')?(pround>=p.questions.length-1):(pround>=p.rounds.length-1);
+  if(pstage==='intro'){pstage='round';pround=0;pc=null;render();return;}
+  if(pstage==='round'){pstage='reveal';render();return;}
+  if(pstage==='reveal'){
+    if(isLast){pstage='close';render();return;}
+    pround++;pc=null;pstage='round';render();return;
+  }
+  if(pstage==='close'){goHome();return;}
+}
+
+function pBack() {
+  if(pstage==='reveal'){pstage='round';pc=null;render();return;}
+  if(pstage==='round'&&pround>0){pround--;pstage='reveal';render();return;}
+  if(pstage==='round'){pstage='intro';render();return;}
+  if(pstage==='close'){pstage='reveal';render();return;}
+}
+
+render();
+</script>
+</body>
+</html>
